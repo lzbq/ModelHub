@@ -1,0 +1,4 @@
+interface:
+  display_name: "ModelHub 风险复核"
+  short_description: "分析异常调用、密钥盗用及账号争议，并判断何时需要人工复核"
+  default_prompt: "Use $modelhub-risk-review to assess this ModelHub risk or account dispute."

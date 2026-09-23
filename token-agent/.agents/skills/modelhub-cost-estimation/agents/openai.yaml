@@ -1,0 +1,11 @@
+interface:
+  display_name: "ModelHub 成本估算"
+  short_description: "根据 Token 用量和实时单价估算费用，并给出可验证的优化方案"
+  default_prompt: "Use $modelhub-cost-estimation to calculate and review this ModelHub workload cost."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "modelhub"
+      description: "ModelHub public model, package, and deterministic cost tools"
+      transport: "streamable_http"
+      url: "http://127.0.0.1:8010/mcp"

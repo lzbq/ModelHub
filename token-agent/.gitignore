@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.venv-win/
+venv/
+
+# 环境变量（含敏感信息）
+.env
+
+# 数据目录
+data/
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker 构建产物
+build-image*.sh
+
+# 本地数据库/缓存文件
+*.sqlite3
+
+# 备份文件
+*~
+*.bak
+docker-compose(1).yml

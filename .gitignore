@@ -1,0 +1,61 @@
+# Secrets: commit templates only.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python environments and caches
+.venv/
+.venv-*/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Dependencies and generated build output
+node_modules/
+target/
+dist/
+build/
+
+# Local runtime data (retain source code and SQL initialization scripts)
+/token-agent/data/
+logs/
+*.log
+*.sqlite
+*.sqlite3
+dump.rdb
+appendonly.aof*
+
+# Editor and OS files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.bak
+
+# Local backups of old repositories: may contain secrets in history.
+/.git-backups/
+/.upload-check/
+/.agents/
+/.codex/
+/agent相关.txt
+
+# Keep token-agent/.agents/skills: these are required by the Agent runtime.

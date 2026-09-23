@@ -1,0 +1,30 @@
+# EchoMind dependencies
+
+# AI / LLM
+anthropic==0.40.0
+sentence-transformers>=3.0.0,<4.0.0
+torch>=2.1.0
+
+# Web framework
+fastapi==0.141.1
+uvicorn[standard]==0.32.1
+pydantic>=2.12.0,<3.0.0
+python-multipart==0.0.12
+
+# Model Context Protocol
+mcp==2.0.0
+
+# Storage
+redis==5.2.1
+pymilvus>=2.5.0,<2.6.0
+psycopg[binary]==3.2.3
+
+# Monitoring
+prometheus-client==0.21.1
+
+# HTTP client
+httpx==0.28.1
+
+# Utilities
+python-dotenv==1.0.1
+PyYAML>=6.0,<7.0

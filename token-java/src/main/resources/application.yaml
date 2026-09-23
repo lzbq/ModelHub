@@ -1,0 +1,85 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  config:
+    # 同时兼容从 token-java 目录或整个 ModelHub 工作区启动。
+    import:
+      - "optional:file:./.env[.properties]"
+      - "optional:file:./token-java/.env[.properties]"
+  application:
+    name: modelhub
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/modelhub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
+  data:
+    redis:
+      host: ${REDIS_HOST:192.168.100.128}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+  jackson:
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity
+
+logging:
+  level:
+    com.hmdp: debug
+
+modelhub:
+  gateway:
+    # 已按阿里云百炼北京地域的 OpenAI 兼容接口配置；没有 Key 时仍不会发送上游请求。
+    enabled: ${MODEL_GATEWAY_ENABLED:true}
+    base-url: ${MODEL_GATEWAY_BASE_URL:https://ws-v8iy1sjoi0bfscs1.cn-beijing.maas.aliyuncs.com/compatible-mode/v1}
+    # 从操作系统环境变量或项目根目录 .env 读取，不要把真实 Key 写进本文件。
+    api-key: ${MODEL_GATEWAY_API_KEY:}
+    timeout-seconds: ${MODEL_GATEWAY_TIMEOUT_SECONDS:60}
+    requests-per-minute: ${MODEL_GATEWAY_REQUESTS_PER_MINUTE:20}
+    max-input-bytes: ${MODEL_GATEWAY_MAX_INPUT_BYTES:16384}
+    max-output-tokens: ${MODEL_GATEWAY_MAX_OUTPUT_TOKENS:4096}
+    max-response-bytes: ${MODEL_GATEWAY_MAX_RESPONSE_BYTES:1048576}
+    models:
+      - alias: ${MODEL_GATEWAY_ALIAS:modelhub-chat}
+        model-id: ${MODEL_GATEWAY_MODEL_ID:1}
+        # 百炼 API 使用区分大小写的模型 ID；页面展示名仍可保留为 Qwen3.5-Flash。
+        upstream-model: ${MODEL_GATEWAY_UPSTREAM_MODEL:qwen3.5-flash}
+  cache:
+    ai-model:
+      # 只有得分达到或超过这个分数的详细信息才会进入 JVM 热点详细信息缓存.
+      hot-score-threshold: ${AI_MODEL_HOT_SCORE_THRESHOLD:8000}
+  hot-score:
+    # 最近指标先在每个 JVM 中缓冲，再按固定延迟写入按 UTC 小时分桶的 Redis ZSet。
+    enabled: ${AI_MODEL_HOT_SCORE_ENABLED:true}
+    metrics-flush-interval-ms: ${AI_MODEL_HOT_SCORE_FLUSH_INTERVAL_MS:1000}
+    refresh-cron: "${AI_MODEL_HOT_SCORE_REFRESH_CRON:0 5 * * * *}"
+    window-hours: ${AI_MODEL_HOT_SCORE_WINDOW_HOURS:24}
+    metric-retention-hours: ${AI_MODEL_HOT_SCORE_RETENTION_HOURS:72}
+    half-life-hours: ${AI_MODEL_HOT_SCORE_HALF_LIFE_HOURS:12}
+    max-score: ${AI_MODEL_HOT_SCORE_MAX:10000}
+    detail-view-weight: ${AI_MODEL_HOT_SCORE_VIEW_WEIGHT:0.35}
+    purchase-weight: ${AI_MODEL_HOT_SCORE_PURCHASE_WEIGHT:0.50}
+    growth-weight: ${AI_MODEL_HOT_SCORE_GROWTH_WEIGHT:0.15}
+    detail-view-saturation: ${AI_MODEL_HOT_SCORE_VIEW_SATURATION:5000}
+    purchase-saturation: ${AI_MODEL_HOT_SCORE_PURCHASE_SATURATION:100}
+    max-growth-rate: ${AI_MODEL_HOT_SCORE_MAX_GROWTH_RATE:3}
+  order:
+    # Only enable for local development: this endpoint does not collect real money.
+    simulated-payment-enabled: ${MODELHUB_SIMULATED_PAYMENT_ENABLED:false}
+    # Unpaid orders are canceled after this interval. Keep production at 30 minutes or longer.
+    timeout-seconds: ${TOKEN_ORDER_TIMEOUT_SECONDS:1800}
+    cleanup-enabled: ${TOKEN_ORDER_CLEANUP_ENABLED:true}
+    cleanup-interval-ms: ${TOKEN_ORDER_CLEANUP_INTERVAL_MS:60000}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:192.168.100.128:9876}
+  producer:
+    group: modelhub-producer-group

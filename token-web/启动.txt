@@ -1,0 +1,2 @@
+cd D:\python\ModelHub\token-web
+npm run dev

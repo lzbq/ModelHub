@@ -1,0 +1,121 @@
+# EchoMind 智能客服系统 — 适配已有基础设施版
+#
+# 你虚拟机里已经有 Redis / Milvus / Postgres，因此这里不再重复启动这些容器。
+# EchoMind 通过 .env 中的 REDIS_URL、MILVUS_URI、DATABASE_URL 连接外部服务。
+
+services:
+
+  # ── Prometheus 监控 ─────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: echomind-prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - echomind-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ── EchoMind 主应用 ─────────────────────────────────────────────────────────
+  echomind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: echomind-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - EVAL_BASELINE_PATH=/app/data/eval/baseline.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/eval:/app/data/eval
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - echomind-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # ── ModelHub MCP（仅绑定宿主机回环地址）───────────────────────────────────
+  modelhub-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: modelhub-mcp
+    ports:
+      - "127.0.0.1:8010:8010"
+    env_file:
+      - .env
+    command:
+      - python
+      - -m
+      - modelhub_mcp.server
+      - --transport
+      - streamable-http
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8010"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - echomind-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8010), 3); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Nginx 反向代理 ──────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: echomind-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      echomind:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - echomind-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  echomind-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  nginx-logs:

@@ -1,0 +1,11 @@
+interface:
+  display_name: "ModelHub 模型选型"
+  short_description: "根据任务、质量、延迟、上下文和预算选择合适的 ModelHub 模型"
+  default_prompt: "Use $modelhub-model-selection to compare ModelHub models for this workload."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "modelhub"
+      description: "ModelHub public model, package, and deterministic cost tools"
+      transport: "streamable_http"
+      url: "http://127.0.0.1:8010/mcp"
